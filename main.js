@@ -57,7 +57,8 @@ Vue.prototype.api = {
 	checkRegisterCondition: baseUrl + "/registration/checkRegisterCondition",
 	createFaceModel: baseUrl + "/face/auth/createFaceModel",
     verifyFaceModel: baseUrl + "/face/auth/verifyFaceModel",
-
+    searchDoctorWorkPlanSchedule: baseUrl + "/registration/searchDoctorWorkPlanSchedule",
+    searchDoctorInfoById: baseUrl + "/doctor/searchDoctorInfoById",
 
 }
 

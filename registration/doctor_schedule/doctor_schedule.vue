@@ -82,11 +82,106 @@ export default {
 		};
 	},
 	methods: {
+		searchDoctorInfoById: function(that) {
+		    let data = {
+		        id: that.doctorId
+		    };
+		    that.ajax(
+		        that.api.searchDoctorInfoById,
+		        'POST',
+		        data,
+		        function(resp) {
+		            that.name = resp.data.name;
+		            that.photo = `${that.minioUrl}/${resp.data.photo}`;
+		            that.job = resp.data.job;
+		            that.remark = resp.data.remark;
+		            that.description = resp.data.description;
+		            that.price = resp.data.price;
+		        },
+		        false
+		    );
+		},
 		
+		searchDoctorWorkPlanSchedule: function(that) {
+		    let data = {
+		        date: that.date,
+		        doctorId: that.doctorId
+		    };
+		    that.ajax(
+		        that.api.searchDoctorWorkPlanSchedule,
+		        'POST',
+		        data,
+		        function(resp) {
+		            let result = resp.data.result;
+		            let schedule = [];
+		            let now = dayjs();
+		            let date = now.format('YYYY-MM-DD');
+		            for (let one in that.json) {
+		                let rangeStart = dayjs(`${date} ${that.json[one]}`);
+		
+		                let item = result.find(function(element) {
+		                    return element.slot + '' == one;
+		                });
+		                let style = null;
+		                //如果挂今天的时段，如果该出诊时段已经过期了，就使用禁用效果的CSS样式
+		                if (that.date == date && now.isAfter(rangeStart)) {
+		                    style = 'item disable';
+		                } 
+		                //如果该时段医生不出诊，使用禁用效果的CSS样式
+		                else if (item == undefined) {
+		                    style = 'item disable';
+		                } 
+		                //如果该时段挂号人数已达最大值，使用禁用效果的CSS样式
+		                else if (item.num == item.maximum) {
+		                    style = 'item disable';
+		                } 
+		                //如果可以挂号，该时段使用正常CSS样式
+		                else {
+		                    style = 'item';
+		                }
+		              
+		                schedule.push({
+		                    workPlanId: item != undefined ? item.workPlanId : null,
+		                    scheduleId: item != undefined ? item.scheduleId : null,
+		                    slot: one,
+		                    range: that.json[one],
+		                    style: style
+		                });
+		            }
+		            that.schedule = schedule;
+		        },
+		        false
+		    );
+		},
+		clickScheduleHandler: function(workPlanId, scheduleId, slot) {
+		    let that = this;
+		    that.workPlanId = workPlanId;
+		    that.scheduleId = scheduleId;
+		    for (let one of that.schedule) {
+		        if (one.style == 'item disable') {
+		            that.slot = null;
+		            continue;
+		        }
+		        one.style = 'item';
+		        if (one.slot == slot) {
+		            one.style = 'item active';
+		            that.slot = slot;
+		        }
+		    }
+		},
+
+
 	},
 	onLoad: function(options) {
-		
+	    let that = this;
+	    that.date = options.date;
+	    that.doctorId = options.doctorId;
+	    that.deptSubId = options.deptSubId;
+	
+	    that.searchDoctorInfoById(that);
+	    that.searchDoctorWorkPlanSchedule(that);
 	}
+
 };
 </script>
 
