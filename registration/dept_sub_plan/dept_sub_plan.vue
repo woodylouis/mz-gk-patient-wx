@@ -157,7 +157,9 @@ export default {
 		                    }
 		                });
 		            } else {
-		                //TODO 跳转到doctor_schedule页面
+		                uni.navigateTo({
+		                    url: `/registration/doctor_schedule/doctor_schedule?deptSubId=${that.deptSubId}&doctorId=${id}&date=${date}`
+		                });
 		            }
 		        },
 		        false

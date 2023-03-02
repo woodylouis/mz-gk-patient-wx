@@ -48,35 +48,27 @@ export default {
 	methods: {
 		confirmHandle: function() {
 		    let that = this;
-		    //停止播放音频提示信息
 		    that.audio.stop();
-		    //获取摄像头对象
 		    let ctx = uni.createCameraContext();
-		    //拍摄照片
 		    ctx.takePhoto({
 		        quality: 'high',
 		        success: function(resp) {
-		            //照片在小程序上临时路径（小程序关闭后，照片会被销毁）
 		            that.photoPath = resp.tempImagePath;
-		            //照片拍摄完成就可以隐藏摄像头取景框组件了
 		            that.showCamera = false;
-		            //在页面上显示拍摄的照片
 		            that.showImage = true;
-		            //把照片读取成base64字符串
 		            uni.getFileSystemManager().readFile({
 		                filePath: that.photoPath,
 		                encoding: 'base64',
 		                success: function(resp) {
 		                    let base64 = 'data:image:/png;base64,' + resp.data;
 		                    let url = null;
-		                    if ( that.mode == 'create') {
+		                    if (that.mode == 'create') {
 		                        //创建面部模型档案
 		                        url = that.api.createFaceModel;
 		                    } else {
 		                        //验证面部模型
 		                        url = that.api.verifyFaceModel;
 		                    }
-		                    //提交Ajax请求，上传照片Base64字符串
 		                    that.ajax(url, 'POST', { photo: base64 }, function(resp) {
 		                        if (that.mode == 'create') {
 		                            uni.showToast({
@@ -84,14 +76,33 @@ export default {
 		                                title: '面部录入成功'
 		                            });
 		                            setTimeout(function() {
-		                                //跳回到上一页
 		                                uni.navigateBack({
 		                                    delta: 1
 		                                });
 		                            }, 2000);
 		                        } else {
-		                            //TODO 判断人脸识别结果
-		                            
+		                            let result = resp.data.result;
+		                            if (result) {
+		                                uni.showToast({
+		                                    icon: 'success',
+		                                    title: '面部验证成功'
+		                                });
+		                                setTimeout(function() {
+		                                    uni.navigateBack({
+		                                        delta: 1
+		                                    });
+		                                }, 2000);
+		                            } else {
+		                                uni.showToast({
+		                                    icon: 'error',
+		                                    title: '面部验证失败'
+		                                });
+		                                setTimeout(function() {
+		                                    that.showImage = false;
+		                                    that.showCamera = true;
+		                                    that.audio.play();
+		                                }, 2000);
+		                            }
 		                        }
 		                    });
 		                }
@@ -99,6 +110,7 @@ export default {
 		        }
 		    });
 		}
+
 
 	},
 	onLoad: function(options) {
